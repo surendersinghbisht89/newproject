@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp10
+  namespace: mytg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      env: surender
+      prod: nginx
+  template:
+    metadata:
+      labels:
+        env: surender
+        prod: nginx
+    spec:
+      containers:
+        - name: c1
+          image: surendersinghbisht/surender2024:NGNIX1.1
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "128m"
