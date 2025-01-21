@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: c1
-          image: surendersinghbisht/surender2024:NGNIX1.1
+          image: surendersinghbisht/surender2024:BUILD_NUMBER
           resources:
             requests:
               memory: "128Mi"
