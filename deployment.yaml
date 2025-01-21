@@ -15,6 +15,8 @@ spec:
         env: surender
         prod: nginx
     spec:
+      imagePullSecrets:
+        - name: mytgsurenderpassword
       containers:
         - name: c1
           image: surendersinghbisht/surender2024:BUILD_NUMBER
@@ -25,3 +27,4 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "128m"
+
