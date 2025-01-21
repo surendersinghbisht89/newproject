@@ -16,10 +16,14 @@ RUN yum install -y openssl
 RUN rpm -Uvh https://nginx.org/packages/centos/7/x86_64/RPMS/nginx-1.20.2-1.el7.ngx.x86_64.rpm && \
     yum install -y nginx && yum install -y unzip
 
-# Download and unzip the template (optional step)
+# Download and unzip the template
 RUN curl -o /tmp/inance.zip https://www.free-css.com/assets/files/free-css-templates/download/page296/inance.zip && \
     unzip /tmp/inance.zip -d /usr/share/nginx/html && \
     rm /tmp/inance.zip
+
+# Move the template into the correct directory
+RUN mv /usr/share/nginx/html/inance-html/* /usr/share/nginx/html/ && \
+    rm -rf /usr/share/nginx/html/inance-html
 
 # Create log directory
 RUN mkdir -p /var/log/nginx
