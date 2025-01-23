@@ -4,7 +4,7 @@ metadata:
   name: myapp10
   namespace: mytg
 spec:
-  replicas: 1
+  replicas: 10
   selector:
     matchLabels:
       env: surender
