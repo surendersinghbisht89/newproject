@@ -16,7 +16,7 @@ spec:
         prod: nginx
     spec:
       imagePullSecrets:
-        - name: mytgsurenderpassword
+        - name: mypasswd-for-custom-img
       containers:
         - name: c1
           image: surendersinghbisht/surender2024:BUILD_NUMBER
