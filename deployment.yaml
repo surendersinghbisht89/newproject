@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp10
-  namespace: mytg
+  namespace: mytg1
 spec:
   replicas: 4
   selector:
