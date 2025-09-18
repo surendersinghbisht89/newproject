@@ -1,37 +1,36 @@
 FROM centos:7
-
 MAINTAINER "sadity.bisht@gmail.com"
 
-# Update repo configuration to use CentOS Vault
+# Use CentOS Vault (CentOS 7 EOL)
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
     sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
-# Install dependencies
+# Install deps
 RUN yum install -y epel-release && \
-    yum install -y curl unzip ca-certificates && \
-    update-ca-trust
+    yum install -y nginx curl unzip ca-certificates && \
+    update-ca-trust && \
+    yum clean all && rm -rf /var/cache/yum
 
-# Install nginx from official repo
-RUN yum install -y nginx && \
-    yum clean all
+# Download & extract template
+RUN set -euxo pipefail; \
+    curl -L --fail --retry 5 \
+      -A "Mozilla/5.0" \
+      -H "Referer: https://freewebsitetemplates.com/" \
+      -o /tmp/template.zip \
+      https://freewebsitetemplates.com/download/rehabilitation-yoga.zip; \
+    mkdir -p /tmp/theme; \
+    unzip -q /tmp/template.zip -d /tmp/theme; \
+    webroot="$(dirname "$(find /tmp/theme -type f -iname index.html | head -n1)")"; \
+    if [ -z "$webroot" ]; then echo 'index.html not found in template' >&2; exit 1; fi; \
+    mkdir -p /usr/share/nginx/html; \
+    cp -a "$webroot"/. /usr/share/nginx/html/; \
+    rm -rf /tmp/template.zip /tmp/theme
 
-# Download and unzip the template (with retries + UA to avoid block)
-RUN curl -L --fail --retry 5 -A "Mozilla/5.0" \
-      -o /tmp/inance.zip \
-      https://www.free-css.com/assets/files/free-css-templates/download/page296/inance.zip && \
-    unzip -q /tmp/inance.zip -d /tmp/theme && \
-    cp -r /tmp/theme/*/* /usr/share/nginx/html/ 2>/dev/null || cp -r /tmp/theme/* /usr/share/nginx/html/ && \
-    rm -rf /tmp/inance.zip /tmp/theme
-
-# Create log directory
+# Ensure logs dir exists
 RUN mkdir -p /var/log/nginx
 
-# Expose necessary ports
 EXPOSE 80 443
+VOLUME ["/usr/share/nginx/html", "/var/log/nginx"]
 
-# Set up the volumes
-VOLUME ["/usr/share/nginx/html"]
-VOLUME ["/var/log/nginx/"]
-
-# Start nginx in the foreground
+# Start nginx in foreground
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
