@@ -1,29 +1,27 @@
 FROM centos:7
-  
+
 MAINTAINER "sadity.bisht@gmail.com"
 
 # Update repo configuration to use CentOS Vault
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
     sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
-# Install EPEL repository
-RUN yum install -y epel-release
+# Install dependencies
+RUN yum install -y epel-release && \
+    yum install -y curl unzip ca-certificates && \
+    update-ca-trust
 
-# Install OpenSSL 1.0.2+ from CentOS base repositories
-RUN yum install -y openssl
+# Install nginx from official repo
+RUN yum install -y nginx && \
+    yum clean all
 
-# Install NGINX repository and NGINX package
-RUN rpm -Uvh https://nginx.org/packages/centos/7/x86_64/RPMS/nginx-1.20.2-1.el7.ngx.x86_64.rpm && \
-    yum install -y nginx && yum install -y unzip
-
-# Download and unzip the template
-RUN curl -o /tmp/inance.zip https://www.free-css.com/assets/files/free-css-templates/download/page296/inance.zip && \
-    unzip /tmp/inance.zip -d /usr/share/nginx/html && \
-    rm /tmp/inance.zip
-
-# Move the template into the correct directory
-RUN mv /usr/share/nginx/html/inance-html/* /usr/share/nginx/html/ && \
-    rm -rf /usr/share/nginx/html/inance-html
+# Download and unzip the template (with retries + UA to avoid block)
+RUN curl -L --fail --retry 5 -A "Mozilla/5.0" \
+      -o /tmp/inance.zip \
+      https://www.free-css.com/assets/files/free-css-templates/download/page296/inance.zip && \
+    unzip -q /tmp/inance.zip -d /tmp/theme && \
+    cp -r /tmp/theme/*/* /usr/share/nginx/html/ 2>/dev/null || cp -r /tmp/theme/* /usr/share/nginx/html/ && \
+    rm -rf /tmp/inance.zip /tmp/theme
 
 # Create log directory
 RUN mkdir -p /var/log/nginx
@@ -37,4 +35,3 @@ VOLUME ["/var/log/nginx/"]
 
 # Start nginx in the foreground
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
-
