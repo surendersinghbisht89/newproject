@@ -1,17 +1,19 @@
-# Use a maintained RHEL-compatible base (CentOS 7 EOL ho chuka hai)
-FROM almalinux:8
-LABEL maintainer="sadity.bisht@gmail.com"
+FROM centos:7
+MAINTAINER "sadity.bisht@gmail.com"
+
+# Use CentOS Vault mirrors (CentOS 7 EOL)
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
 # Base deps
-RUN dnf -y install epel-release && \
-    dnf -y install nginx curl unzip ca-certificates && \
+RUN yum install -y epel-release && \
+    yum install -y nginx curl unzip ca-certificates && \
     update-ca-trust && \
-    dnf clean all
+    yum clean all && rm -rf /var/cache/yum
 
-# Copy your template ZIP into image
+# Download & extract template (auto-detect index.html folder)
+# Replace the curl+unzip block with:
 COPY rehabilitation-yoga.zip /tmp/template.zip
-
-# Unzip + autodetect webroot that contains index.html
 RUN set -eux; \
   mkdir -p /tmp/theme; \
   unzip -q /tmp/template.zip -d /tmp/theme; \
@@ -21,12 +23,12 @@ RUN set -eux; \
   cp -a "$webroot"/. /usr/share/nginx/html/; \
   rm -rf /tmp/template.zip /tmp/theme
 
-# Ensure logs dir exists
+
+# Ensure logs dir exists (nginx uses it)
 RUN mkdir -p /var/log/nginx
 
 EXPOSE 80 443
 VOLUME ["/usr/share/nginx/html", "/var/log/nginx"]
 
-# Run nginx in foreground (note the quoted -g)
+# Start nginx in foreground (semicolon is important)
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
-
